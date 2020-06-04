@@ -1,0 +1,14 @@
+0734f6b9b11672fe37a3b07dd8fd56e5 *DESCRIPTION
+8314a0d32277d91555b65cd2cc1d68a3 *NAMESPACE
+c180a853b0973f88e2fed3431b1632b4 *R/dynamic_neural_model-v5.R
+763117bb82817eb17b00cad55732e38e *R/globals.R
+fc68fca5cb26c539730ccbc3538ad880 *R/poisson_analysis.R
+b639a6d952e933cd5dc50d5c1bb7d9ca *man/bin.counter.Rd
+0334cbaeb660a094c352fb7df845e249 *man/dapp.Rd
+da4c29347286b97b395bb2111b0f366c *man/dapp.simulate.Rd
+1b3103ed12fe219ccd8b4bfac431b5d5 *man/mplex.preprocess.Rd
+1c861cfdc66ca4e2df36c7aabaf5b0f0 *man/plot.dapp.Rd
+e714768b23419e9b13065838f6529b1b *man/poisson.tests.Rd
+579d3f0e963fa86b15451cb21387cb5c *man/predict.dapp.Rd
+449599280362572d5e5b0327c024d1bf *man/summary.dapp.Rd
+a88d1c86b148fadfa0b889898e479683 *man/synthesis.dapp.Rd
