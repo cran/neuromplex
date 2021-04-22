@@ -5,7 +5,7 @@
 \description{Preprocess nueral spike train recording to preapre binned spike counts suitable for DAPP analysis}
 \usage{ 
 mplex.preprocess(spiketimes, start.time=0, end.time=1e3, bw=50,
-    remove.zeros=FALSE, visualize=TRUE)
+    remove.zeros=FALSE, visualize=TRUE, ...)
 } 
 \arguments{
 \item{spiketimes}{a list with 3 elements giving the 3 sets of spiketimes associated with experimental conditions A, B and AB}
@@ -14,7 +14,9 @@ mplex.preprocess(spiketimes, start.time=0, end.time=1e3, bw=50,
 \item{bw}{bin width (in ms) used for binning. A single bin is used when bw equals or exceeds the length of the observation period (end.time - start.time). Single bin analysis is same as total spike count analysis}
 \item{remove.zeros}{logical indicating if trials with zero spike counts should be removed from the analysis}
 \item{visualize}{logical indicating if a graphical summary should be produced to visualize the three sets of trials}
+\item{...}{additional commands to be passed on to grid.arrange() for plotting. For example, adding 'top="PLOT TITLE"' will add a title at the top of the combined plot. See \code{grid.arrange} for more details.}
 }
+
 \value{
 Returns a list containting the following items.
 
@@ -54,11 +56,15 @@ synth.data <- synthesis.dapp(ntrials = ntrials, pr.flat = 0.5,
                              span = wavy.span, period.range = wavy.period,
                              lambda.A=rateA, lambda.B=rateB)
 
-## Visualize data and generated binned spike counts
-spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=TRUE)
+## Visualize data and generate binned spike counts
+spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=TRUE, 
+top="Synthetic data: bin size=50ms")
 
+\dontrun{
 ## Visualize total spike counts data
-spike.counts <- mplex.preprocess(synth.data$spiketimes, bw=Inf, visualize=TRUE)
+spike.counts <- mplex.preprocess(synth.data$spiketimes, bw=Inf, visualize=TRUE, 
+top="Synthetic data: total spike counts")
+}
 }
 
 \keyword{programming}

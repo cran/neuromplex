@@ -6,7 +6,8 @@
 \usage{ 
 poisson.tests(xA, xB, xAB, labels = c("A", "B", "AB"), remove.zeros = FALSE,
               gamma.pars = c(0.5, 2e-10), beta.pars = c(0.5, 0.5),
-              nMC = 1000, plot = FALSE, add.poisson.fits = FALSE)
+              nMC = 1000, plot = FALSE, add.poisson.fits = FALSE, 
+              method.screen = c('variance', 'bincount'), ...)
 } 
 \arguments{
 \item{xA}{an array of whole-trial spike counts under stimulus 1}
@@ -19,6 +20,8 @@ poisson.tests(xA, xB, xAB, labels = c("A", "B", "AB"), remove.zeros = FALSE,
 \item{nMC}{number of Monte Carlo samples to be used in numerical approximations.}
 \item{plot}{logical indicating if a visualization plot should be made}
 \item{add.poisson.fits}{logical indicating if a fitted Poisson pmfs will be overlaid in the visualization. Ignored when plot=FALSE.}
+\item{method.screen}{a character string, default is 'variance' which uses the Poisson variance test to assess whether a Poisson distribution fits a sample of counts. Alternative choice is 'bincount' which uses an binned histogram based nonparametric chi-square goodness of fit test}
+\item{...}{additional commands to be passed on to grid.arrange() for plotting. For example, adding 'top="PLOT TITLE"' will add a title at the top of the combined plot. See \code{grid.arrange} for more details.}
 }
 \value{
 Returns a list with the following items:
@@ -28,13 +31,12 @@ Returns a list with the following items:
 \item{sample.sizes}{three trial counts for A, B and AB conditions}
 }
 
-\details{To be added...}
 \examples{
 nA <- 20; nB <- 15; nAB <- 25
 muA <- 25; muB <- 40
 Acounts <- rpois(nA, muA)
 Bcounts <- rpois(nB, muB)
 ABcounts <- rpois(nAB, sample(c(muA, muB), nAB, replace = TRUE))
-poisson.tests(Acounts, Bcounts, ABcounts, nMC=500, plot=FALSE)
+poisson.tests(Acounts, Bcounts, ABcounts, nMC=200, plot=FALSE)
 }
 \keyword{programming}

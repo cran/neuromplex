@@ -36,18 +36,26 @@ test.chisq <- function(x, k){
   return(sum((obs.c - exp.c)^2 / exp.c))
 }
 
-pval.chisq <- function(x){
+pval.chisq <- function(x, method=c("variance", "bincount")[1]){
   n <- length(x)
-  k <- max(3, floor(n/5))
-  Q.obs <- test.chisq(x,k)
-  Q.samp <- replicate(1e4, test.chisq(rpois(length(x), mean(x)),k))
-  return(mean(Q.samp > Q.obs))
+  if(method == 'bincount'){
+    k <- max(3, floor(n/5))
+    Q.obs <- test.chisq(x,k)
+    Q.samp <- replicate(1e4, test.chisq(rpois(length(x), mean(x)),k))
+    pval <- mean(Q.samp > Q.obs)
+  } else {
+    Tstat <- (n-1)*var(x)/mean(x)
+    pval <- pchisq(Tstat, df=n-1, lower.tail=FALSE)
+  }
+  return(pval)
 }
 
 poisson.tests <- function(xA, xB, xAB, labels = c("A", "B", "AB"), 
                           remove.zeros = FALSE, gamma.pars = c(0.5, 2e-10), 
                           beta.pars = c(0.5, 0.5), nMC = 1000,
-                          plot = FALSE, add.poisson.fits=FALSE){
+                          plot = FALSE, add.poisson.fits=FALSE, 
+                          method.screen = c('variance', 'bincount'),
+                          ...){
   
   a <- gamma.pars[1]; b <- gamma.pars[2]
   c1 <- beta.pars[1]; c2 <- beta.pars[2]
@@ -90,8 +98,7 @@ poisson.tests <- function(xA, xB, xAB, labels = c("A", "B", "AB"),
         scale_color_manual(values=AB.palette)
     }
   }
-  pvls <- c(pval.chisq(xA), pval.chisq(xB), pval.chisq(xAB))
-  
+  pvls <- sapply(list(xA, xB, xAB), pval.chisq, method= method.screen[1])
   ## how different are the two pure trials?
   
   two.poi.ibf <- Vectorize(function(i, j) return(log.pm(xA[-i],xA[i]+a,1+b) + log.pm(xB[-j],xB[j]+a,1+b) - log.pm(c(xA[-i],xB[-j]),xA[i]+xB[j]+a,2+b)))
@@ -183,7 +190,7 @@ poisson.tests <- function(xA, xB, xAB, labels = c("A", "B", "AB"),
   bfs <- exp(c(mixture = log.marg.mix, intermediate = log.marg.ave, outside = log.marg.out, single = log.marg.dom) - log.marg.ind)
   out <- list(separation.logBF = lbf.pure,
               post.prob = bfs/sum(bfs),
-              pois.pvalue = min(pvls[1:2]),
+              pois.pvalues = pvls[1:2],
               samp.sizes = c(nA, nB, nAB))
   model.probs <- bfs/sum(bfs)
   models <- c("Mixture", "Intermediate", "Outside", "Single")
@@ -191,7 +198,7 @@ poisson.tests <- function(xA, xB, xAB, labels = c("A", "B", "AB"),
   if(plot){
     title.code <- bquote(BayesFactor[A!=B]==.(signif(exp(lbf.pure),1))~"Winning Model"==.(models[win.model])~.(round(100*model.probs[win.model]))~"%")
     g2 <- g + ggtitle(title.code)
-    print(g2)
+    grid.arrange(g2, ...)
   }
   return(out)
 }

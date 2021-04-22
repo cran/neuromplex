@@ -49,16 +49,16 @@ Returns a list of class "dapp" containting the following items.
   #### and a shorter MCMC run to keep the run length less than 5s
   #### Use ?plot.dapp or ?plot.summary for a more realistic example
   
-  ## Generate 25 A and 30 B trials with rate functions
+  ## Generate 30 A and 30 B trials with rate functions
   ##    lambda.A(t) = 160*exp(-2*t/1000) + 40*exp(-0.2*t/1000)
   ##    lambda.B(t) = 40*exp(-2*t/1000)
-  ## where time t is measured in ms. Then, generate 30 AB trials,
+  ## where time t is measured in ms. Then, generate 25 AB trials,
   ## roughly 2/3 with flat weight curves with a constant intensity
   ## either close to A, or close to B (equally likely). The 
   ## remaining 1/3 curves are sinusoidal that snake between 0.01 and 0.99 
   ## with a period randomly drawn between 400 and 1000
   
-  ntrials <- c(nA=25, nB=30, nAB=30)
+  ntrials <- c(nA=30, nB=30, nAB=25)
   flat.range <- list(A=c(0.85, 0.95),
                      B=c(0.05, 0.15))
   flat.mix <- c(A=1/2, B=1/2)

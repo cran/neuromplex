@@ -56,8 +56,8 @@ synth.data <- synthesis.dapp(ntrials = ntrials, pr.flat = 0.5,
                              span = wavy.span, period.range = wavy.period,
                              lambda.A=rateA, lambda.B=rateB)
 
-## Visualize data and generated binned spike counts
-spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=TRUE)
+## Visualize data and generate binned spike counts
+spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=TRUE, top="Synthetic Data")
 }
 
 \keyword{programming}

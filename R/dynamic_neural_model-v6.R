@@ -68,10 +68,12 @@ dapp <- function(spike.counts, lengthScale = NULL, lsPrior = NULL,
   
   ## Smoothing spike counts to obtain conditional hyper-priors on
   ## A and B firing rate curves
-  x1.smu <- sapply(1:n1, function(i) supsmu(bin.mids, x1[,i])$y)
-  x2.smu <- sapply(1:n2, function(i) supsmu(bin.mids, x2[,i])$y)
-  x3.smu <- sapply(1:n3, function(i) supsmu(bin.mids, x3[,i])$y)
-  
+  x1.smu <- x1; x2.smu <- x2; x3.smu <- x3
+  if(nbins > 3){
+    x1.smu <- sapply(1:n1, function(i) smoother(bin.mids, x1[,i]))
+    x2.smu <- sapply(1:n2, function(i) smoother(bin.mids, x2[,i]))
+    x3.smu <- sapply(1:n3, function(i) smoother(bin.mids, x3[,i]))
+  }
   x.max <- max(max(x1.smu), max(x2.smu), max(x3.smu))
   
   
@@ -404,6 +406,7 @@ dapp <- function(spike.counts, lengthScale = NULL, lsPrior = NULL,
   
 }
 
+
 predict.dapp <- function(object, tilt.prior = FALSE, mesh.tilt = 0.1, nprior = object$mcmc["nsamp"], ...){
   nsamp <- object$mcmc["nsamp"]
   alpha.post.pred <- object$alpha.pred
@@ -492,6 +495,7 @@ summary.dapp <- function(object, flat.cut = 0.15, wavy.cut = 0.85,
                  prior.tags=prior.tags,
                  est.tags=est.tags))
 }
+
 plot.dapp <- function(x, tilt.prior = FALSE, mesh.tilt = 0.1, 
                       nprior = x$mcmc["nsamp"], ncurves = 10, 
                       simple.layout=FALSE, ...){
@@ -587,9 +591,15 @@ plot.dapp <- function(x, tilt.prior = FALSE, mesh.tilt = 0.1,
     scale_fill_manual(values=AB.palette) + 
     scale_color_manual(values=AB.palette) + 
     ggtitle("Single stimulus rates") + 
-    theme(plot.title = element_text(size = 12))
-  
-  
+    theme(plot.title = element_text(size = 12)) + 
+    theme(legend.position=c(0.9,0.99), 
+          legend.justification = c("right", "top"),
+          legend.box.just = "right",
+          legend.margin = margin(2, 2, 2, 2),
+          #legend.direction = "horizontal",
+          legend.title = element_text(size = 8),
+          legend.text = element_text(size = 8),
+          legend.key.size = unit(0.25, 'cm'))
   
   ## Predictive distribution of features
   #upcross.means <- 0.16 * resp.horiz / object$lengthScale
@@ -601,7 +611,7 @@ plot.dapp <- function(x, tilt.prior = FALSE, mesh.tilt = 0.1,
   
   bayes.palette <- c('#BBBBBB','#0061A1')
   dt.4 <- rbind(prior.dt, post.dt)
-  p4 <- ggplot(dt.4, aes(x=Range, fill=Set)) + 
+  p4 <- ggplot(dt.4, aes(x=Range, fill=factor(Set, levels=c("Prior", "Posterior")))) +
     geom_density(alpha=0.6, show.legend=FALSE, col=gray(0.4)) + 
     scale_fill_manual(values=bayes.palette) +
     theme_minimal() + 
@@ -613,7 +623,7 @@ plot.dapp <- function(x, tilt.prior = FALSE, mesh.tilt = 0.1,
   ## Average alpha.pred
   dt.5 <- rbind(data.frame(Average=rowMeans(alpha.prior.pred), Draws="Prior"),
                 data.frame(Average=rowMeans(alpha.post.pred), Draws="Posterior"))
-  p5 <- ggplot(dt.5, aes(x=Average, fill=Draws)) + 
+  p5 <- ggplot(dt.5, aes(x=Average, fill=factor(Draws, levels=c("Prior", "Posterior")))) +
     geom_density(alpha=0.6, show.legend=FALSE, col=gray(0.4)) + 
     scale_fill_manual(values=bayes.palette) +
     theme_minimal() + 
@@ -633,25 +643,35 @@ plot.dapp <- function(x, tilt.prior = FALSE, mesh.tilt = 0.1,
   dt.6 <- data.frame(Eupcross=E.swing, Prior=colMeans(lsprob.prior), Posterior=colMeans(lsprob.post)) %>% 
     gather(Set, Prob, -Eupcross)
   dt.6$Set <- factor(dt.6$Set, levels=c("Prior", "Posterior"))
-  p6 <- ggplot(dt.6, aes(x=factor(Eupcross), y=Prob, fill=Set))+
+  yy.max <- max(dt.6$Prob)
+  p6 <- ggplot(dt.6, aes(x=factor(Eupcross), y=Prob, fill=Set)) +
     geom_bar(stat="identity", position=position_dodge(), alpha=0.6, col=gray(0.3), width=0.7) +
     theme_minimal() + 
+    ylim(0, yy.max*1.1) + 
     scale_fill_manual(values=bayes.palette) + 
     xlab("E(#up-crossing)") + 
     ylab("Probability") + 
     ggtitle(expression(paste(alpha(t), ": predicted waviness"))) + 
-    theme(plot.title = element_text(size = 12))
+    theme(plot.title = element_text(size = 12)) + 
+    theme(legend.position=c(0.9,0.99), 
+          legend.justification = c("right", "top"),
+          legend.box.just = "right",
+          legend.margin = margin(2, 2, 2, 2),
+          legend.direction = "horizontal",
+          legend.title = element_text(size = 8),
+          legend.text = element_text(size = 8),
+          legend.key.size = unit(0.25, 'cm'))
   
   if(simple.layout){
-    grid.arrange(p2, p5, p4, p6, widths=c(2,2,2,3))
+    grid.arrange(p2, p5, p4, p6, nrow=1, ...)
   } else {
-    grid.arrange(p1, p2, p3, p5, p4, p6, nrow=2, widths=c(2.5,2.5,3.5))
+    grid.arrange(p1, p2, p3, p4, p5, p6, nrow=2, ...)
   }
   invisible(alpha.post.pred)
 }
 
 mplex.preprocess <- function(spiketimes, start.time=0, end.time=1e3, bw=50, 
-                             remove.zeros=FALSE, visualize=TRUE){
+                             remove.zeros=FALSE, visualize=TRUE, ...){
   
   total.time <- end.time - start.time
   if(total.time <= 0) stop("start time is later than end time")
@@ -703,15 +723,18 @@ mplex.preprocess <- function(spiketimes, start.time=0, end.time=1e3, bw=50,
         scale_fill_manual(values=AB.palette) + 
         theme_minimal() + 
         ylab("Density")
-      print(g)
+      grid.arrange(g, ...)
     }
     
   } else {
     count.to.Hz.factor <- 1000/bw
     
-    x1.smu <- sapply(1:n1, function(i) supsmu(bin.mids, x1[,i])$y)
-    x2.smu <- sapply(1:n2, function(i) supsmu(bin.mids, x2[,i])$y)
-    x3.smu <- sapply(1:n3, function(i) supsmu(bin.mids, x3[,i])$y)
+    x1.smu <- x1; x2.smu <- x2; x3.smu <- x3
+    if(nbins > 3){
+      x1.smu <- sapply(1:n1, function(i) smoother(bin.mids, x1[,i]))
+      x2.smu <- sapply(1:n2, function(i) smoother(bin.mids, x2[,i]))
+      x3.smu <- sapply(1:n3, function(i) smoother(bin.mids, x3[,i]))
+    }
     
     x.max <- max(max(x1.smu), max(x2.smu), max(x3.smu))
     x.min <- min(min(x1.smu), min(x2.smu), min(x3.smu))
@@ -746,10 +769,10 @@ mplex.preprocess <- function(spiketimes, start.time=0, end.time=1e3, bw=50,
       all.trials <- bind_rows(list(A.trials, B.trials, AB.trials))
       
       p <- b + 
-        geom_line(data=all.trials, aes(x=Time, y=Rate, group=Trial), alpha=0.6) + 
+        geom_line(data=all.trials, aes(x=Time, y=Rate, group=Trial), size=0.5, alpha=0.6) + 
         facet_wrap(~factor(Experiment, levels = c("Stimulus A","Stimulus B","Stimuli A+B"))) + 
         theme(strip.text.x = element_text(size=12))
-      print(p)
+      grid.arrange(p,...)
     }
   }
   invisible(list(Acounts=x1, Bcounts=x2, ABcounts=x3, 
@@ -938,4 +961,7 @@ drop.item <- function(x, j) return(x[-match(j, x, nomatch = length(x) + 1)])
 
 #tcol <- Vectorize(function(col, alpha = 1) {x <- col2rgb(col)/255; return(rgb(x[1],x[2],x[3],alpha = alpha))}, "col")
 
+
+extract <- function(listname, varname) return(listname[[varname]])
+smoother <- function(x, y) return(predict(smooth.spline(x, sqrt(0.5+y), lambda=5e-4))$y^2)
 

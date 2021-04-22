@@ -15,7 +15,7 @@
 \item{nprior}{number of prior draws to be used for display}
 \item{ncurves}{number of curves to be shown individually}
 \item{simple.layout}{logical indicating if a simpler graphical output should be returned with only predictive visualization}
-\item{...}{no addiitonal parameters used at this point}
+\item{...}{additional commands to be passed on to grid.arrange() for plotting. For example, adding 'top="PLOT TITLE"' will add a title at the top of the combined plot. See \code{grid.arrange} for more details.}
 }
 \value{
 Gives prior and posterior summaries of the range and average predicted alpha curves
@@ -53,7 +53,7 @@ synth.data <- synthesis.dapp(ntrials = ntrials, pr.flat = 0.5,
                              lambda.A=rateA, lambda.B=rateB)
 
 ## Visualize data and generated binned spike counts
-spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=TRUE)
+spike.counts <- mplex.preprocess(synth.data$spiketimes, visualize=FALSE)
 
 ## Fit the DAPP model to data
 fit.post <- dapp(spike.counts, verbose=FALSE)
